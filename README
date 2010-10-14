@@ -1,0 +1,29 @@
+The purpose of fix-term-env is to adjust the TERM environment variable, in
+particular with respect to the color depth supported, based on other
+environment variables, compatibility with the terminfo database, and any
+other clues that can be automatically derived from the system without user
+interaction.
+
+To use, simply install fix-term-env somewhere in your PATH and add something
+like the following to your ~/.bashrc:
+
+    eval `fix-term-env`
+
+The main motivation is the well-known problem of how best to get 256-color
+support from within GNOME Terminal, with the added constraint of detecting
+older versions and falling back to a lesser color depth.
+
+A secondary requirement is the ability to demote the color depth based on
+the terminfo definitions available on the current system.  This allows, for
+example, an ssh session in a 256-color-capable terminal to a machine with an
+older terminfo database to automatically reduce the number of colors until
+an acceptable terminal setting is found.
+
+http://github.com/mtmiller/fix-term-env
+
+Acknowledgements
+----------------
+
+* http://vim.wikia.com/wiki/256_colors_in_vim
+* gnome-terminal source: git://git.gnome.org/gnome-terminal
+* vte source: git://git.gnome.org/vte

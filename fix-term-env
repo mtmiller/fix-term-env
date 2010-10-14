@@ -1,0 +1,66 @@
+#!/bin/sh
+#
+# fix-term-env - change TERM to more accurately reflect terminal
+# capabilities
+#
+# Copyright (C) 2010 Mike Miller <mtmiller@ieee.org>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+case "$TERM" in
+xterm)
+    case "$COLORTERM" in
+    gnome-terminal)
+	pid=$$
+	while [ $pid -ne 0 ]; do
+	    set -- filler `ps -o ppid,comm -p $pid | sed -n '$p'`
+	    ppid=$2 command=$3
+	    mem=/proc/$pid/maps
+	    case "$command" in
+	    gnome-terminal)
+		matches=`sed -n 's/^.*\(libvte\.so\.[0-9]\+\).*$/\1/p' $mem`
+		break
+		;;
+	    esac
+	    pid=$ppid
+	done
+	set -- filler $matches
+	soname=$2
+	case "$soname" in
+	libvte.so.[01234]) TERM=xterm-16color ;;
+	*)                 TERM=xterm-256color ;;
+	esac
+	;;
+    esac
+    ;;
+esac
+
+case "$TERM" in
+xterm*)
+    while ! tput -T$TERM colors > /dev/null 2>&1; do
+	case "$TERM" in
+	xterm-256color) TERM=xterm-16color ;;
+	xterm-16color)  TERM=xterm-color ;;
+	xterm-color)    TERM=xterm ;;
+	xterm*color*)   TERM=xterm-color ;;
+	xterm*)         TERM=xterm ;;
+	esac
+    done
+    ;;
+esac
+
+case "$SHELL" in
+*/csh|*/tcsh) echo "setenv TERM \"$TERM\"" ;;
+*)            echo "export TERM=\"$TERM\"" ;;
+esac
